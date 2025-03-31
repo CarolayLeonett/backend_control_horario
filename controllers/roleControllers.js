@@ -1,80 +1,70 @@
-const roleModel = require("../models/rolModel");
+import { pool } from "../models/db.js";
 
-// Obtener todos los roles
-const getRoles = async (req, res) => {
+export const getRol = async (req, res) => {
   try {
-    const roles = await roleModel.getAllRoles();
-    res.status(200).json(roles);
-  } catch (err) {
-    res.status(500).json({ message: "Error al obtener los roles", error: err });
+    const [result] = await pool.query("SELECT * FROM roles ");
+    res.json(result);
+  } catch (error) {
+    return res.status(500).json({ message: "Error al obtener los roles" });
   }
 };
 
-// Obtener un rol por ID
-const getRole = async (req, res) => {
-  const { id } = req.params;
+export const getUnRol = async (req, res) => {
   try {
-    const role = await roleModel.getRoleById(id);
-    if (!role) {
+    const [result] = await pool.query("SELECT * FROM roles WHERE id_rol = ?", [
+      req.params.id,
+    ]);
+
+    if (result.length === 0)
       return res.status(404).json({ message: "Rol no encontrado" });
-    }
-    res.status(200).json(role);
-  } catch (err) {
-    res.status(500).json({ message: "Error al obtener el rol", error: err });
+
+    res.json(result[0]);
+  } catch (error) {
+    return res.status(500).json({ message: "Error al obtener el rol" });
   }
 };
 
-// Crear un nuevo rol
-const createRole = async (req, res) => {
-  const { name, description } = req.body;
+export const createRol = async (req, res) => {
   try {
-    if (!name || !description) {
-      return res
-        .status(400)
-        .json({ message: "Nombre y descripción son requeridos" });
-    }
-    const result = await roleModel.createRole({ name, description });
-    res
-      .status(201)
-      .json({ message: "Rol creado exitosamente", roleId: result.insertId });
-  } catch (err) {
-    res.status(500).json({ message: "Error al crear el rol", error: err });
+    const { rol } = req.body;
+
+    // Inserción en la base de datos
+    const [result] = await pool.query("INSERT INTO roles (rol) VALUES (?)", [
+      rol,
+    ]);
+
+    res.json({
+      id: result.insertId,
+      rol,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Error al crear el rol" });
   }
 };
 
-// Actualizar un rol
-const updateRole = async (req, res) => {
-  const { id } = req.params;
-  const { name, description } = req.body;
+export const updateRol = async (req, res) => {
   try {
-    const result = await roleModel.updateRole(id, { name, description });
-    if (result.affectedRows === 0) {
+    const { rol } = req.body;
+    const result = await pool.query("UPDATE roles SET ? WHERE id_rol = ?", [
+      req.body,
+    ]);
+    res.json(result);
+  } catch (error) {
+    return res.status(500).json({ message: "Error al actualizar el rol" });
+  }
+};
+
+export const deleteRol = async (req, res) => {
+  try {
+    const [result] = await pool.query("DELETE FROM roles WHERE id_rol = ?", [
+      req.params.id,
+    ]);
+
+    if (result.affectedRows === 0)
       return res.status(404).json({ message: "Rol no encontrado" });
-    }
-    res.status(200).json({ message: "Rol actualizado exitosamente" });
-  } catch (err) {
-    res.status(500).json({ message: "Error al actualizar el rol", error: err });
-  }
-};
 
-// Eliminar un rol
-const deleteRole = async (req, res) => {
-  const { id } = req.params;
-  try {
-    const result = await roleModel.deleteRole(id);
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Rol no encontrado" });
-    }
-    res.status(200).json({ message: "Rol eliminado exitosamente" });
-  } catch (err) {
-    res.status(500).json({ message: "Error al eliminar el rol", error: err });
+    return res.sendStatus(204);
+  } catch (error) {
+    return res.status(500).json({ message: "Error al eliminar el rol" });
   }
-};
-
-module.exports = {
-  getRoles,
-  getRole,
-  createRole,
-  updateRole,
-  deleteRole,
 };

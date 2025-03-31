@@ -1,23 +1,34 @@
-//app.js
-const express = require("express");
-const bodyParser = require("body-parser");
-const cors = require("cors");
-const authRoutes = require("./routes/authRoutes");
-const roleRoutes = require("./routes/roleRoutes");
+import express from "express";
+import bodyParser from "body-parser";
+import cors from "cors";
+import authRoutes from "./routes/authRoutes.js";
+import rolRoutes from "./routes/roleRoutes.js";
+import usersRoutes from "./routes/usersRoutes.js";
+import empleadosRoutes from "./routes/empleadosRoutes.js";
+import cargoRoutes from "./routes/cargoRoutes.js";
+import fichajesRoutes from "./routes/fichajesRoutes.js";
 
 const app = express();
+
 const corsOptions = {
   allowedHeaders: ["Authorization", "Content-Type"],
 };
+
+// Middleware
 app.use(bodyParser.json());
-app.use(cors());
 app.use(cors(corsOptions));
 
-app.use("/api/auth", authRoutes);
-app.use("/api/roles", roleRoutes);
+// Rutas de autenticación
+app.use("/api/", authRoutes);
+app.use("/api/", rolRoutes);
+app.use("/api/", usersRoutes);
+app.use("/api/", empleadosRoutes);
+app.use("/api/", cargoRoutes);
+app.use("/api/", fichajesRoutes);
 
 const PORT = process.env.PORT || 5000;
 
+// Iniciar el servidor
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
